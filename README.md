@@ -2,7 +2,7 @@
 QWBFS Manager provides a cross platform Qt 4 GUI for working with hard disk drives that have been formatted to the WBFS file system.
 This is a cross platform 32/64bits (Windows, OS X, Linux/Unix like) alternative to [WBFS Manager](http://wbfsmanager.codeplex.com/).
 
-[Downloads](https://github.com/pasnox/qwbfsmanager/releases) - [Forum](http://groups.google.com/group/qwbfs-discuss) - [Downloads Feed](http://to-be-changed)
+[Downloads](https://github.com/maniac787/qwbfsmanager/releases) - [Changelog](CHANGELOG.md) - [Forum](http://groups.google.com/group/qwbfs-discuss) - [Original project](https://github.com/pasnox/qwbfsmanager)
 
 # Features
   * Build with Qt4 and/or Qt5 (1.2.5)
@@ -80,6 +80,36 @@ This is a cross platform 32/64bits (Windows, OS X, Linux/Unix like) alternative 
   * [Wii GX Mod](http://wii.gx-mod.com/modules/news/article.php?storyid=2817)
   * [Xav91Wii](http://xav91wii.free.fr/forum/viewtopic.php?f=11&t=2462&start=0&sid=20d4ea529d285f11288084fd6b9c1a6a)
   * [Wii Info](http://www.wii-info.fr/download-637-qwbfs-1-1-0-gestionnaire-wbfs.htm)
+
+# Releases
+
+## Automatic (merge to `main`)
+Merging to `main` runs [`.github/workflows/bump-version.yml`](.github/workflows/bump-version.yml):
+
+  * Reads Conventional Commits since the last `v*` tag
+    (`feat` → minor, `BREAKING CHANGE` / `type!:` → major, otherwise patch)
+  * Bumps `PACKAGE_VERSION` in `qwbfs/qwbfs.pro`
+  * Moves [CHANGELOG.md](CHANGELOG.md) `Unreleased` notes into the new version
+  * Commits `chore(release): vX.Y.Z`, creates tag `vX.Y.Z`, and publishes the GitHub Release
+    (source archive + generated notes)
+
+Use Conventional Commits in PR titles / commit messages (`feat:`, `fix:`, `docs:`,
+`feat!:`, etc.). Prefer squash merges so the PR title drives the bump.
+
+Keep [CHANGELOG.md](CHANGELOG.md) `Unreleased` updated in each PR; if it is empty,
+the bump workflow fills the release section from commit subjects.
+
+## Manual tag
+You can still push a tag yourself; [`.github/workflows/release.yml`](.github/workflows/release.yml)
+creates the Release. Tags must match `v*` (for example `v1.3.0`). Tags with a hyphen
+(for example `v1.3.0-rc1`) are published as prereleases.
+
+```bash
+git tag v1.3.0
+git push origin v1.3.0
+```
+
+Published releases: https://github.com/maniac787/qwbfsmanager/releases
 
 # License
 This project is licensed under the [GNU General Public License v2.0](LICENSE) (GPL-2.0),
