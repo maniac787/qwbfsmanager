@@ -1,0 +1,500 @@
+/****************************************************************************
+**
+**      Created using Monkey Studio IDE v1.8.4.0 (1.8.4.0)
+** Authors   : Filipe Azevedo aka Nox P@sNox <pasnox@gmail.com>
+** Project   : QWBFS Manager
+** FileName  : PartitionWidget.cpp
+** Date      : 2010-06-16T14:19:29
+** License   : GPL2
+** Home Page : https://github.com/pasnox/qwbfsmanager
+** Comment   : QWBFS Manager is a cross platform WBFS manager developed using C++/Qt4.
+** It's currently working fine under Windows (XP to Seven, 32 & 64Bits), Mac OS X (10.4.x to 10.6.x), Linux & unix like.
+**
+** This program is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation, either version 3 of the License, or
+** (at your option) any later version.
+**
+** This package is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with this program. If not, see <http://www.gnu.org/licenses/>.
+**
+** In addition, as a special exception, the copyright holders give permission
+** to link this program with the OpenSSL project's "OpenSSL" library (or with
+** modified versions of it that use the same license as the "OpenSSL"
+** library), and distribute the linked executables. You must obey the GNU
+** General Public License in all respects for all of the code used other than
+** "OpenSSL".  If you modify file(s), you may extend this exception to your
+** version of the file(s), but you are not obligated to do so. If you do not
+** wish to do so, delete this exception statement from your version.
+**
+****************************************************************************/
+#include "PartitionWidget.h"
+#include "qwbfsdriver/Driver.h"
+#include "models/DiscModel.h"
+#include "Properties.h"
+#include "ProgressDialog.h"
+#include "UIMain.h"
+#include "FolderLibrary.h"
+#include "WorkerThread.h"
+
+#include <FreshCore/pNetworkAccessManager>
+#include "models/pPartitionModel.h"
+
+#include <QLineEdit>
+#include <QInputDialog>
+#include <QMessageBox>
+#include <QMimeData>
+#include <QFileInfo>
+#include <QDebug>
+
+PartitionWidget::PartitionWidget( QWidget* parent )
+    : QWidget( parent )
+{
+    Q_ASSERT( parent );
+    const UIMain* window = qobject_cast<UIMain*>( parent->window() );
+    const Properties properties( this );
+
+    setupUi( this );
+    setAcceptDrops( true );
+
+    mDriver = new QWBFS::Driver( this );
+
+    lvDiscs->initialize( mDriver, window->cache() );
+    lvDiscs->setViewMode( properties.viewMode() );
+    lvDiscs->setViewIconType( properties.viewIconType() );
+    cfvDiscs->setModel( lvDiscs->model() );
+    cfvDiscs->setColumn( 0 );
+    cfvDiscs->setDisplayTextColumn( 2 );
+    lvImport->initialize( mDriver, window->cache() );
+    lvImport->setViewMode( properties.viewMode() );
+    lvImport->setViewIconType( properties.viewIconType() );
+
+    QPalette cfvPal = cfvDiscs->palette();
+    cfvPal.setColor( QPalette::WindowText, QColor( 255, 255, 255 ) );
+    cfvDiscs->setPalette( cfvPal );
+
+    QFont cfvFont = cfvDiscs->font();
+    cfvFont.setBold( true );
+    cfvFont.setPixelSize( 18 );
+    cfvDiscs->setFont( cfvFont );
+
+    sViews->setSizes( QList<int>() << QWIDGETSIZE_MAX << fImport->minimumSizeHint().height() );
+
+    localeChanged();
+
+    connect( lvDiscs->model(), SIGNAL( countChanged( int ) ), this, SLOT( models_countChanged() ) );
+    connect( lvImport->model(), SIGNAL( countChanged( int ) ), this, SLOT( models_countChanged() ) );
+    connect( cfvDiscs, SIGNAL( centerIndexChanged( const QModelIndex& ) ), this, SLOT( coverFlow_centerIndexChanged( const QModelIndex& ) ) );
+    connect( lvDiscs->selectionModel(), SIGNAL( selectionChanged( const QItemSelection&, const QItemSelection& ) ), this, SLOT( views_selectionChanged() ) );
+    connect( lvImport->selectionModel(), SIGNAL( selectionChanged( const QItemSelection&, const QItemSelection& ) ), this, SLOT( views_selectionChanged() ) );
+}
+
+PartitionWidget::~PartitionWidget()
+{
+    mDriver->close();
+}
+
+bool PartitionWidget::event( QEvent* event )
+{
+    switch ( event->type() ) {
+        case QEvent::LocaleChange:
+            localeChanged();
+            break;
+        default:
+            break;
+    }
+
+    return QWidget::event( event );
+}
+
+const QWBFS::Driver* PartitionWidget::driver() const
+{
+    return mDriver;
+}
+
+QWBFS::Model::DiscModel* PartitionWidget::discModel() const
+{
+    return lvDiscs->model();
+}
+
+QWBFS::Model::DiscModel* PartitionWidget::importModel() const
+{
+    return lvImport->model();
+}
+
+QToolButton* PartitionWidget::showHideImportViewButton() const
+{
+    return tbShowHideImportView;
+}
+
+QString PartitionWidget::currentPartition() const
+{
+    return cbPartitions->itemText( cbPartitions->currentIndex() );
+}
+
+void PartitionWidget::setMainView( bool main )
+{
+    tbOpen->setVisible( main );
+    tbClose->setVisible( !main );
+}
+
+void PartitionWidget::setCurrentPartition( const QString& partition )
+{
+    if ( mDriver->partition() != partition || currentPartition() != partition ) {
+        mDriver->setPartition( partition );
+        cbPartitions->setCurrentIndex( cbPartitions->findText( partition ) );
+        tbLoad->click();
+    }
+}
+
+void PartitionWidget::showError( const QString& error )
+{
+    mainWindow()->messageToolBar()->appendMessage( error );
+}
+
+void PartitionWidget::showError( int error )
+{
+    showError( QWBFS::Driver::errorToString( QWBFS::Driver::Error( error ) ) );
+}
+
+void PartitionWidget::dragEnterEvent( QDragEnterEvent* event )
+{
+    const bool canAccept = mDriver->isOpen() || isFolderLibraryMode();
+#if QT_VERSION >= QT_VERSION_CHECK( 5, 0, 0 )
+    if ( canAccept && !findChildren<QWidget*>().contains( qobject_cast<QWidget*>( event->source() ) ) ) {
+#else
+    if ( canAccept && !findChildren<QWidget*>().contains( event->source() ) ) {
+#endif
+        foreach ( const QString& mimeType, importModel()->mimeTypes() ) {
+            if ( event->mimeData()->hasFormat( mimeType ) ) {
+                event->setDropAction( Qt::CopyAction );
+                event->accept();
+                return;
+            }
+        }
+    }
+}
+
+void PartitionWidget::dropEvent( QDropEvent* event )
+{
+    if ( !fImport->isVisible() ) {
+        tbShowHideImportView->toggle();
+    }
+
+    importModel()->dropMimeData( event->mimeData(), event->proposedAction(), -1, -1, QModelIndex() );
+    event->acceptProposedAction();
+}
+
+UIMain* PartitionWidget::mainWindow() const
+{
+    return qobject_cast<UIMain*>( window() );
+}
+
+void PartitionWidget::localeChanged()
+{
+    retranslateUi( this );
+    lInformations->setText( tr( "%1 disc(s) on the partition - %2 disc(s) to import." ).arg( discModel()->rowCount() ).arg( importModel()->rowCount() ) );
+    updateFolderModeUi();
+}
+
+bool PartitionWidget::isFolderLibraryMode() const
+{
+    return FolderLibrary::isLibraryPath( mLibraryPath );
+}
+
+void PartitionWidget::updateFolderModeUi()
+{
+    tbFormat->setEnabled( !isFolderLibraryMode() );
+}
+
+void PartitionWidget::models_countChanged()
+{
+    QWBFS::Partition::Status status;
+
+    if ( isFolderLibraryMode() ) {
+        status = FolderLibrary::storageStatus( mLibraryPath );
+    }
+    else {
+        mDriver->status( status );
+    }
+
+    gStatus->setSize( status.size );
+    gStatus->setUsedSize( status.used );
+    gStatus->setFreeSize( status.free );
+    gStatus->setTemporarySize( importModel()->size() );
+    lInformations->setText( tr( "%1 disc(s) on the partition - %2 disc(s) to import." ).arg( discModel()->rowCount() ).arg( importModel()->rowCount() ) );
+}
+
+void PartitionWidget::views_selectionChanged()
+{
+    const QItemSelectionModel* sm = qobject_cast<const QItemSelectionModel*>( sender() );
+    const QWBFS::Model::DiscModel* model = qobject_cast<const QWBFS::Model::DiscModel*>( sm->model() );
+    const QModelIndexList indexes = sm->selectedIndexes();
+
+    emit coverRequested( indexes.isEmpty() ? QString() : model->discId( indexes.last() ) );
+}
+
+void PartitionWidget::coverFlow_centerIndexChanged( const QModelIndex& index )
+{
+    if ( index.isValid() && lvDiscs->selectionModel() ) {
+        // CoverFlow highlights visually but does not touch lvDiscs selection by itself.
+        // Keep both in sync so Remove/Rename work from the cover view.
+        if ( !lvDiscs->selectionModel()->isSelected( index ) ) {
+            lvDiscs->selectionModel()->select( index, QItemSelectionModel::ClearAndSelect );
+        }
+        lvDiscs->setCurrentIndex( index );
+    }
+
+    emit coverRequested( index.isValid() ? lvDiscs->model()->discId( index ) : QString() );
+}
+
+QModelIndexList PartitionWidget::selectedDiscIndexes() const
+{
+    QModelIndexList indexes = lvDiscs->selectionModel()->selectedIndexes();
+    if ( !indexes.isEmpty() ) {
+        return indexes;
+    }
+
+    // Fallback when CoverFlow is active and selection was never synced.
+    const QModelIndex coverIndex = cfvDiscs->currentModelIndex();
+    if ( coverIndex.isValid() ) {
+        indexes << coverIndex;
+    }
+    return indexes;
+}
+
+void PartitionWidget::progress_jobFinished( const QWBFS::Model::Disc& disc )
+{
+    importModel()->updateDisc( disc );
+}
+
+void PartitionWidget::progress_finished()
+{
+    PartitionComboBox::partitionModel()->update();
+    tbLoad->click();
+}
+
+void PartitionWidget::on_cbPartitions_currentIndexChanged( int index )
+{
+    if ( window()->isVisible() ) { // dirty hack because qcombobox automatically set the current index to the first item on model set and this can produce errors (partition is not wbfs)
+        setCurrentPartition( cbPartitions->itemText( index ) );
+    }
+}
+
+void PartitionWidget::on_tbLoad_clicked()
+{
+    mLibraryPath.clear();
+    updateFolderModeUi();
+
+    const QString partition = mDriver->partition().isEmpty() ? currentPartition() : mDriver->partition();
+    bool loaded = false;
+
+    if ( mDriver->open() ) {
+        loaded = true;
+    }
+    else if ( !partition.isEmpty() ) {
+        const QString libraryPath = FolderLibrary::resolveLibraryPath( partition );
+        if ( FolderLibrary::isLibraryPath( libraryPath ) ) {
+            mLibraryPath = libraryPath;
+            loaded = true;
+            updateFolderModeUi();
+        }
+        else {
+            showError( tr( "Can't open partition." ) );
+        }
+    }
+
+    if ( discModel()->rowCount() == 0 ) {
+        models_countChanged();
+    }
+    else {
+        discModel()->clear();
+    }
+
+    if ( mDriver->isOpen() ) {
+        QWBFS::Model::DiscList discs;
+        const int result = mDriver->discList( discs );
+
+        if ( result == QWBFS::Driver::Ok ) {
+            discModel()->setDiscs( discs );
+
+            if ( discModel()->rowCount() == 0 ) {
+                models_countChanged();
+            }
+        }
+        else {
+            showError( result );
+        }
+    }
+    else if ( isFolderLibraryMode() ) {
+        discModel()->setDiscs( FolderLibrary::listDiscs( mLibraryPath ) );
+
+        if ( discModel()->rowCount() == 0 ) {
+            models_countChanged();
+        }
+    }
+
+    Q_UNUSED( loaded );
+}
+
+void PartitionWidget::on_tbFormat_clicked()
+{
+    if ( isFolderLibraryMode() ) {
+        showError( tr( "Formatting is disabled for FAT/folder libraries. Use a native WBFS partition to format." ) );
+        return;
+    }
+
+    const QString text = tr( "The partition '%1' will be formatted,\nall data will be erased permanently, are you sure?" ).arg( mDriver->partition() );
+    const QMessageBox::StandardButtons buttons = QMessageBox::Yes | QMessageBox::No;
+    const QMessageBox::StandardButton button = QMessageBox::No;
+
+    if ( QMessageBox::question( this, QString(), text, buttons, button ) == button ) {
+        return;
+    }
+
+    if ( mDriver->format() ) {
+        tbLoad->click();
+    }
+    else {
+        showError( tr( "Can't format partition." ) );
+    }
+}
+
+void PartitionWidget::on_tbOpen_clicked()
+{
+    emit openViewRequested();
+}
+
+void PartitionWidget::on_tbClose_clicked()
+{
+    emit closeViewRequested();
+}
+
+void PartitionWidget::on_tbRemoveDiscs_clicked()
+{
+    const QModelIndexList indexes = selectedDiscIndexes();
+    const QString targetLabel = isFolderLibraryMode() ? mLibraryPath : mDriver->partition();
+
+    if ( indexes.isEmpty() ) {
+        showError( tr( "Select a game in the library (list or covers) first." ) );
+        return;
+    }
+
+    const QString text = tr( "You are about to permanently delete %1 disc(s) on partition '%2', are you sure?" ).arg( indexes.count() ).arg( targetLabel );
+    const QMessageBox::StandardButtons buttons = QMessageBox::Yes | QMessageBox::No;
+    const QMessageBox::StandardButton button = QMessageBox::No;
+
+    if ( QMessageBox::question( this, QString(), text, buttons, button ) == button ) {
+        return;
+    }
+
+    int errors = 0;
+
+    for ( int i = indexes.count() -1; i >= 0; i-- ) {
+        const QModelIndex& index = indexes[ i ];
+        bool removed = false;
+
+        if ( isFolderLibraryMode() ) {
+            removed = FolderLibrary::removeDiscFile( discModel()->disc( index ) );
+            if ( removed ) {
+                discModel()->removeRow( index.row() );
+            }
+        }
+        else {
+            const QString discId = discModel()->discId( index );
+            if ( mDriver->removeDisc( discId ) == QWBFS::Driver::Ok ) {
+                discModel()->removeRow( index.row() );
+                removed = true;
+            }
+        }
+
+        if ( !removed ) {
+            errors++;
+        }
+    }
+
+    if ( errors > 0 ) {
+        showError( tr( "One or more discs have failed to be removed." ) );
+    }
+
+    if ( isFolderLibraryMode() ) {
+        models_countChanged();
+    }
+}
+
+void PartitionWidget::on_tbRenameDisc_clicked()
+{
+    if ( isFolderLibraryMode() ) {
+        showError( tr( "Rename is not available for FAT/folder libraries." ) );
+        return;
+    }
+
+    const QModelIndex index = selectedDiscIndexes().value( 0 );
+
+    if ( !index.isValid() ) {
+        showError( tr( "Select a game in the library (list or covers) first." ) );
+        return;
+    }
+
+    const QWBFS::Model::Disc disc = discModel()->disc( index );
+
+    const QString name = QInputDialog::getText( this, QString(), tr( "Choose a new name for the disc" ), QLineEdit::Normal, disc.title );
+
+    if ( name.isNull() ) {
+        return;
+    }
+
+    if ( mDriver->renameDisc( disc.id, name ) == QWBFS::Driver::Ok ) {
+        discModel()->setData( index, name, Qt::DisplayRole );
+    }
+    else {
+        showError( tr( "Can't rename disc id #%1 (%2) to '%3'" ).arg( disc.id ).arg( disc.title ).arg( name ) );
+    }
+}
+
+void PartitionWidget::on_tbClearImport_clicked()
+{
+    importModel()->clear();
+}
+
+void PartitionWidget::on_tbRemoveImport_clicked()
+{
+    importModel()->removeSelection( lvImport->selectionModel()->selection() );
+}
+
+void PartitionWidget::on_tbImport_clicked()
+{
+    if ( importModel()->rowCount() == 0 ) {
+        return;
+    }
+
+    if ( !mDriver->isOpen() && !isFolderLibraryMode() ) {
+        showError( tr( "Can't open partition." ) );
+        return;
+    }
+
+    ProgressDialog* dlg = new ProgressDialog( this );
+
+    connect( dlg, SIGNAL( jobFinished( const QWBFS::Model::Disc& ) ), this, SLOT( progress_jobFinished( const QWBFS::Model::Disc& ) ) );
+    connect( dlg, SIGNAL( finished() ), this, SLOT( progress_finished() ) );
+
+    WorkerThread::Work work;
+    work.task = WorkerThread::ImportWBFS;
+    work.discs = importModel()->discs();
+    work.window = dlg;
+
+    if ( isFolderLibraryMode() ) {
+        work.target = mLibraryPath;
+        work.pattern = FolderLibrary::defaultImportPattern();
+    }
+    else {
+        work.target = mDriver->handle().partition();
+    }
+
+    dlg->setWork( work );
+}

@@ -1,0 +1,52 @@
+# Qt Creator / qmake
+*.pro.user*
+*.qbs.user*
+.qmake.stash
+.qmake.cache
+
+# Generated build files
+Makefile
+Makefile.*
+**/Makefile
+**/Makefile.*
+
+# Build output
+/build/
+/bin/
+*.o
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.app
+
+# Qt generated sources
+moc_*.cpp
+moc_*.h
+*_moc.cpp
+ui_*.h
+qrc_*.cpp
+*.moc
+
+# Translations (compiled)
+*.qm
+
+# IDE / editor
+.idea/
+*.swp
+*~
+*.autosave
+
+# OS
+.DS_Store
+.directory
+Thumbs.db
+
+# Debug / coverage
+*.gcda
+*.gcno
+*.gcov
+core
+core.*

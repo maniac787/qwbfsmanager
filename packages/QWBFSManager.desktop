@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=QWBFS Manager
+GenericName=WBFS Manager
+Comment=Cross-platform Wii Backup File System manager
+Exec=qwbfsmanager
+Icon=qwbfsmanager
+Terminal=false
+Categories=Game;Utility;Qt;
+StartupNotify=true
+StartupWMClass=qwbfsmanager
