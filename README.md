@@ -81,6 +81,15 @@ This is a cross platform 32/64bits (Windows, OS X, Linux/Unix like) alternative 
   * [Xav91Wii](http://xav91wii.free.fr/forum/viewtopic.php?f=11&t=2462&start=0&sid=20d4ea529d285f11288084fd6b9c1a6a)
   * [Wii Info](http://www.wii-info.fr/download-637-qwbfs-1-1-0-gestionnaire-wbfs.htm)
 
+# License
+This project is licensed under the [GNU General Public License v2.0](LICENSE) (GPL-2.0),
+the same license as the original [pasnox/qwbfsmanager](https://github.com/pasnox/qwbfsmanager).
+
+You must keep this software free/open under GPL-2 (or a later GPL version where the
+original headers allow it), preserve copyright notices, and include the license text
+when you distribute the program or modified versions. See `LICENSE` / `GPL-2` for the
+full terms. There is no warranty.
+
 DISCLAIMER
 THIS APPLICATION COMES WITH NO WARRANTY AT ALL, NEITHER EXPRESS NOR IMPLIED.
 I DO NOT TAKE ANY RESPONSIBILITY FOR ANY DAMAGE TO YOUR WII CONSOLE
