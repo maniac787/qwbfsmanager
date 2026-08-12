@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   release:
-    name: Create GitHub Release
+    name: Build .deb and create GitHub Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,12 +18,36 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            dpkg-dev \
+            qmake6 \
+            qt6-base-dev \
+            qt6-base-dev-tools \
+            qt6-l10n-tools \
+            pkg-config \
+            libssl-dev \
+            libudev-dev \
+            libx11-dev \
+            libxext-dev
+
+      - name: Build .deb package
+        id: deb
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          chmod +x .github/scripts/build-deb.sh
+          .github/scripts/build-deb.sh "${GITHUB_REF_NAME}"
+
       - name: Create source archive
         run: |
           TAG="${GITHUB_REF_NAME}"
           ARCHIVE="qwbfsmanager-${TAG}-src.tar.gz"
-          git archive --format=tar.gz --prefix="qwbfsmanager-${TAG}/" -o "${ARCHIVE}" "${TAG}"
-          echo "ARCHIVE=${ARCHIVE}" >> "$GITHUB_ENV"
+          git archive --format=tar.gz --prefix="qwbfsmanager-${TAG}/" -o "dist/${ARCHIVE}" "${TAG}"
+          echo "SRC_ARCHIVE=dist/${ARCHIVE}" >> "$GITHUB_ENV"
 
       - name: Create release
         uses: softprops/action-gh-release@v2
@@ -33,5 +57,7 @@ jobs:
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
           generate_release_notes: true
-          files: ${{ env.ARCHIVE }}
+          files: |
+            ${{ env.SRC_ARCHIVE }}
+            ${{ steps.deb.outputs.deb_path }}
           fail_on_unmatched_files: true

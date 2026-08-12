@@ -13,6 +13,9 @@ Makefile.*
 # Build output
 /build/
 /bin/
+/dist/
+/.deb-staging/
+/.deb-build/
 *.o
 *.a
 *.so

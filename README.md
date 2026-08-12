@@ -90,8 +90,8 @@ Merging to `main` runs [`.github/workflows/bump-version.yml`](.github/workflows/
     (`feat` → minor, `BREAKING CHANGE` / `type!:` → major, otherwise patch)
   * Bumps `PACKAGE_VERSION` in `qwbfs/qwbfs.pro`
   * Moves [CHANGELOG.md](CHANGELOG.md) `Unreleased` notes into the new version
-  * Commits `chore(release): vX.Y.Z`, creates tag `vX.Y.Z`, and publishes the GitHub Release
-    (source archive + generated notes)
+  * Commits `chore(release): vX.Y.Z`, creates tag `vX.Y.Z`, builds an amd64 `.deb`, and
+    publishes the GitHub Release (source archive + `.deb` + generated notes)
 
 Use Conventional Commits in PR titles / commit messages (`feat:`, `fix:`, `docs:`,
 `feat!:`, etc.). Prefer squash merges so the PR title drives the bump.
@@ -101,12 +101,25 @@ the bump workflow fills the release section from commit subjects.
 
 ## Manual tag
 You can still push a tag yourself; [`.github/workflows/release.yml`](.github/workflows/release.yml)
-creates the Release. Tags must match `v*` (for example `v1.3.0`). Tags with a hyphen
-(for example `v1.3.0-rc1`) are published as prereleases.
+builds the `.deb` and creates the Release. Tags must match `v*` (for example `v1.3.0`).
+Tags with a hyphen (for example `v1.3.0-rc1`) are published as prereleases.
 
 ```bash
 git tag v1.3.0
 git push origin v1.3.0
+```
+
+### Local `.deb` build
+```bash
+sudo apt install build-essential dpkg-dev qmake6 qt6-base-dev qt6-base-dev-tools \
+  qt6-l10n-tools pkg-config libssl-dev libudev-dev libx11-dev libxext-dev
+./.github/scripts/build-deb.sh   # uses PACKAGE_VERSION from qwbfs/qwbfs.pro
+# output: dist/qwbfsmanager_<version>_amd64.deb
+```
+
+Install on Debian/Ubuntu:
+```bash
+sudo apt install ./dist/qwbfsmanager_*_amd64.deb
 ```
 
 Published releases: https://github.com/maniac787/qwbfsmanager/releases

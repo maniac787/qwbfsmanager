@@ -12,6 +12,7 @@ This fork continues [pasnox/qwbfsmanager](https://github.com/pasnox/qwbfsmanager
 ## [Unreleased]
 
 ### Added
+- Automated amd64 `.deb` package build attached to GitHub Releases (`.github/scripts/build-deb.sh`)
 
 ### Changed
 
