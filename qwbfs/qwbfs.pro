@@ -120,6 +120,7 @@ HEADERS *= src/main.h \
     src/FreshCore/pNetworkAccessManager.h \
     src/FreshCore/pSettings.h \
     src/FreshCore/pTranslationManager.h \
+    src/FreshCore/pWinHelpers.h \
     src/FreshGui/pDockWidget.h \
     src/FreshGui/pGuiUtils.h \
     src/FreshGui/pIconManager.h \

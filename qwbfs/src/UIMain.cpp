@@ -51,6 +51,7 @@
 
 #include <QMenuBar>
 #include <QMenu>
+#include <QToolButton>
 #include <QFileSystemModel>
 #include <QFileDialog>
 #include <QProcess>
@@ -88,11 +89,12 @@ UIMain::UIMain( QWidget* parent )
     dwTools->toggleViewAction()->setIcon( QIcon( ":/icons/256/tools.png" ) );
     dwCovers->toggleViewAction()->setIcon( QIcon( ":/icons/256/covers.png" ) );
 
-    mActions = new QMenu( this );
-    mActions->setIcon( aConvertToWBFSFiles->icon() );
+    mActions = new QMenu( tr( "Actions" ), this );
     mActions->addAction( aConvertToWBFSFiles );
     mActions->addAction( aConvertToISOFiles );
     mActions->addAction( aRenameDiscsInFolder );
+    // Keep menu-bar entries text-only (an icon here leaves broken placeholders on other menus).
+    mActions->menuAction()->setIcon( QIcon() );
 
     // Menu bar alone on its own row; toolbar buttons below
     mMenuBar = menuBar();
@@ -109,6 +111,8 @@ UIMain::UIMain( QWidget* parent )
     mFileMenu->addSeparator();
     mFileMenu->addAction( aQuit );
 
+    mMenuBar->addMenu( mActions );
+
     mHelpMenu = mMenuBar->addMenu( tr( "&Help" ) );
     mHelpMenu->addAction( aAbout );
     mHelpMenu->addAction( aVersion );
@@ -117,8 +121,22 @@ UIMain::UIMain( QWidget* parent )
         mHelpMenu->addAction( updateAction );
     }
 
-    // Toolbar: only quick action buttons (no menus)
-    toolBar->addAction( mActions->menuAction() );
+    // Toolbar keeps icon+label via its own menu sharing the same actions.
+    QMenu* toolBarActionsMenu = new QMenu( this );
+    toolBarActionsMenu->addAction( aConvertToWBFSFiles );
+    toolBarActionsMenu->addAction( aConvertToISOFiles );
+    toolBarActionsMenu->addAction( aRenameDiscsInFolder );
+
+    mActionsToolButton = new QToolButton( this );
+    mActionsToolButton->setMenu( toolBarActionsMenu );
+    mActionsToolButton->setPopupMode( QToolButton::InstantPopup );
+    mActionsToolButton->setIcon( aConvertToWBFSFiles->icon() );
+    mActionsToolButton->setText( tr( "Actions" ) );
+    mActionsToolButton->setToolButtonStyle( toolBar->toolButtonStyle() );
+    mActionsToolButton->setIconSize( toolBar->iconSize() );
+    mActionsToolButton->setAutoRaise( true );
+
+    toolBar->addWidget( mActionsToolButton );
     toolBar->addSeparator();
     toolBar->addAction( dwTools->toggleViewAction() );
     toolBar->addAction( dwCovers->toggleViewAction() );
@@ -190,6 +208,7 @@ bool UIMain::event( QEvent* event )
 {
     switch ( event->type() ) {
         case QEvent::LocaleChange:
+        case QEvent::LanguageChange:
             localeChanged();
             break;
         default:
@@ -261,6 +280,9 @@ void UIMain::localeChanged()
 {
     retranslateUi( this );
     mActions->setTitle( tr( "Actions" ) );
+    if ( mActionsToolButton ) {
+        mActionsToolButton->setText( tr( "Actions" ) );
+    }
     if ( mFileMenu ) {
         mFileMenu->setTitle( tr( "&File" ) );
     }
@@ -363,6 +385,14 @@ void UIMain::changeLocaleRequested()
         properties.setLocale( QLocale( locale ) );
 
         translationManager->setCurrentLocale( locale );
+        translationManager->reloadTranslations();
+
+        const QLocale qlocale = translationManager->currentLocale();
+        foreach ( QWidget* widget, QApplication::topLevelWidgets() ) {
+            widget->setLocale( QLocale::c() );
+            widget->setLocale( qlocale );
+        }
+        localeChanged();
     }
 }
 

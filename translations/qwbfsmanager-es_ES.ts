@@ -711,6 +711,16 @@ YO NO ME HAGO RESPONSABLE DE CUALQUIER DAÑO QUE SE PUEDA PRODUCIR EN SU CONSOLA
         <translation>Acciones</translation>
     </message>
     <message>
+        <location filename="../qwbfs/src/UIMain.cpp" line="107"/>
+        <source>&amp;File</source>
+        <translation>&amp;Archivo</translation>
+    </message>
+    <message>
+        <location filename="../qwbfs/src/UIMain.cpp" line="112"/>
+        <source>&amp;Help</source>
+        <translation>A&amp;yuda</translation>
+    </message>
+    <message>
         <location filename="../qwbfs/src/UIMain.cpp" line="192"/>
         <source>Welcome to %1, the cross-platform WBFS Manager. Report bugs &lt;a href=&quot;%2&quot;&gt;here&lt;/a&gt;, discuss &lt;a href=&quot;%3&quot;&gt;here&lt;/a&gt;.</source>
         <translation>Bienvenido %1, un Gestor WBFS (multi-plataforma). Reporte los bugs &lt;a href=&quot;%2&quot;&gt;aquí&lt;/a&gt;, discusión &lt;a href=&quot;%3&quot;&gt;aquí&lt;/a&gt;.</translation>

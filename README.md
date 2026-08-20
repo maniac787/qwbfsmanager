@@ -90,8 +90,9 @@ Merging to `main` runs [`.github/workflows/bump-version.yml`](.github/workflows/
     (`feat` → minor, `BREAKING CHANGE` / `type!:` → major, otherwise patch)
   * Bumps `PACKAGE_VERSION` in `qwbfs/qwbfs.pro`
   * Moves [CHANGELOG.md](CHANGELOG.md) `Unreleased` notes into the new version
-  * Commits `chore(release): vX.Y.Z`, creates tag `vX.Y.Z`, builds an amd64 `.deb`, and
-    publishes the GitHub Release (source archive + `.deb` + generated notes)
+  * Commits `chore(release): vX.Y.Z`, creates tag `vX.Y.Z`, builds an amd64 `.deb`
+    and a portable Windows x64 `.zip`, and publishes the GitHub Release
+    (source archive + `.deb` + `.zip` + generated notes)
 
 Use Conventional Commits in PR titles / commit messages (`feat:`, `fix:`, `docs:`,
 `feat!:`, etc.). Prefer squash merges so the PR title drives the bump.
@@ -101,8 +102,9 @@ the bump workflow fills the release section from commit subjects.
 
 ## Manual tag
 You can still push a tag yourself; [`.github/workflows/release.yml`](.github/workflows/release.yml)
-builds the `.deb` and creates the Release. Tags must match `v*` (for example `v1.3.0`).
-Tags with a hyphen (for example `v1.3.0-rc1`) are published as prereleases.
+builds the Linux `.deb` and Windows `.zip`, then creates the Release. Tags must match
+`v*` (for example `v1.3.0`). Tags with a hyphen (for example `v1.3.0-rc1`) are
+published as prereleases.
 
 ```bash
 git tag v1.3.0
@@ -121,6 +123,15 @@ Install on Debian/Ubuntu:
 ```bash
 sudo apt install ./dist/qwbfsmanager_*_amd64.deb
 ```
+
+### Local Windows zip (MSYS2 MINGW64)
+```bash
+export PATH=/mingw64/bin:/usr/bin:$PATH
+./.github/scripts/build-windows.sh   # uses PACKAGE_VERSION from qwbfs/qwbfs.pro
+# output: dist/qwbfsmanager-<version>-win64.zip
+```
+
+Extract the zip and run `qwbfsmanager.exe` (Qt/OpenSSL DLLs are bundled; no extra PATH needed).
 
 Published releases: https://github.com/maniac787/qwbfsmanager/releases
 

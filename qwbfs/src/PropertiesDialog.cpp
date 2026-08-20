@@ -90,6 +90,7 @@ bool PropertiesDialog::event( QEvent* event )
 {
     switch ( event->type() ) {
         case QEvent::LocaleChange:
+        case QEvent::LanguageChange:
             localeChanged();
             break;
         default:

@@ -27,9 +27,12 @@ win32 {
     isEqual( OS, "darwin" ):OPENSSL_INSTALL_DIR = $(HOME)/Win32Libraries
     else:isEqual( OS, "linux" ):OPENSSL_INSTALL_DIR = $(HOME)/.wine/drive_c/Development/OpenSSL
 
-    *-g++*:LIBS *= -L$${OPENSSL_INSTALL_DIR}/lib -L$${OPENSSL_INSTALL_DIR}/lib/MinGW
-    *-msvc*:LIBS    *= -L$${OPENSSL_INSTALL_DIR}/lib -L$${OPENSSL_INSTALL_DIR}/lib/VC
-    INCLUDEPATH *= $${OPENSSL_INSTALL_DIR}/include
+    # Prefer a local OpenSSL SDK when present; otherwise use the toolchain defaults (MSYS2/MinGW).
+    exists( $${OPENSSL_INSTALL_DIR}/include ) {
+        *-g++*:LIBS *= -L$${OPENSSL_INSTALL_DIR}/lib -L$${OPENSSL_INSTALL_DIR}/lib/MinGW
+        *-msvc*:LIBS    *= -L$${OPENSSL_INSTALL_DIR}/lib -L$${OPENSSL_INSTALL_DIR}/lib/VC
+        INCLUDEPATH *= $${OPENSSL_INSTALL_DIR}/include
+    }
 } else:mac {
     # Mac Brew openssl
     INCLUDEPATH *= /usr/local/Cellar/openssl/1.0.2f/include

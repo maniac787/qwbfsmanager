@@ -39,6 +39,8 @@
 #include "ui_UIMain.h"
 
 class QMenuBar;
+class QMenu;
+class QToolButton;
 class QFileSystemModel;
 class QNetworkReply;
 class pNetworkAccessManager;
@@ -68,6 +70,7 @@ protected:
     QMenu* mFileMenu;
     QMenu* mHelpMenu;
     QMenu* mActions;
+    QToolButton* mActionsToolButton;
     QFileSystemModel* mFoldersModel;
     QFileSystemModel* mFilesModel;
     pNetworkAccessManager* mCache;

@@ -16,6 +16,7 @@ Makefile.*
 /dist/
 /.deb-staging/
 /.deb-build/
+qwbfs/build/
 *.o
 *.a
 *.so
@@ -24,6 +25,7 @@ Makefile.*
 *.dll
 *.exe
 *.app
+object_script.*
 
 # Qt generated sources
 moc_*.cpp
@@ -53,3 +55,7 @@ Thumbs.db
 *.gcov
 core
 core.*
+
+# Local install / tool logs
+aqtinstall.log
+*.log
