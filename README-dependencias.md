@@ -156,11 +156,13 @@ export PATH=/mingw64/bin:/usr/bin:$PATH
 # salida: dist/qwbfsmanager-<version>-win64.zip
 ```
 
-El zip incluye `qwbfsmanager.exe`, DLLs de Qt/OpenSSL/MinGW y `translations/`. Al extraerlo se puede ejecutar sin configurar el `PATH`.
+El zip incluye `qwbfsmanager.exe`, DLLs de Qt/OpenSSL/MinGW y `translations/`. Al extraerlo se puede ejecutar sin
+configurar el `PATH`.
 
 ## 5) Problemas comunes
 
 - Falta `qmake6` / `g++`: abre la shell **MINGW64** (no la MSYS genérica) e instala los paquetes del apartado 1.
-- La app no arranca o falta una DLL (`Qt6Core.dll`, etc.): falta `C:\msys64\mingw64\bin` en el `PATH` (o usa el zip portable del apartado 4).
+- La app no arranca o falta una DLL (`Qt6Core.dll`, etc.): falta `C:\msys64\mingw64\bin` en el `PATH` (o usa el zip
+  portable del apartado 4).
 - Pocos idiomas en el selector: faltan los `.qm`; ejecuta `lrelease` y cópialos a `bin/translations/`.
 - `cannot find -lcrypto` / OpenSSL: instala `mingw-w64-x86_64-openssl`.

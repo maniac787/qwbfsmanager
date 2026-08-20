@@ -17,12 +17,14 @@ else
   VERSION="$(grep -E '^PACKAGE_VERSION\s*=' "$PRO_FILE" | head -n1 | sed -E 's/^PACKAGE_VERSION[[:space:]]*=[[:space:]]*//;s/[[:space:]]*$//')"
 fi
 
+# Strip leading v from tags if passed as v1.2.3
+VERSION="${VERSION#v}"
+
 if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-].+)?$ ]]; then
   echo "Invalid version: ${VERSION}" >&2
   exit 1
 fi
 
-VERSION="${VERSION#v}"
 ZIP_NAME="qwbfsmanager-${VERSION}-win64.zip"
 ZIP_PATH="${DIST_DIR}/${ZIP_NAME}"
 DEPLOY_NAME="qwbfsmanager-${VERSION}-win64"
