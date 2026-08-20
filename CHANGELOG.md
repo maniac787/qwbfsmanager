@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 where practical.
 
 This fork continues [pasnox/qwbfsmanager](https://github.com/pasnox/qwbfsmanager)
-(archived). Application version in tree: `1.5.1` (`qwbfs/qwbfs.pro`).
+(archived). Application version in tree: `1.6.0` (`qwbfs/qwbfs.pro`).
 
 ## [Unreleased]
 
@@ -16,6 +16,22 @@ This fork continues [pasnox/qwbfsmanager](https://github.com/pasnox/qwbfsmanager
 ### Changed
 
 ### Fixed
+
+## [1.6.0] - 2026-08-20
+### Changed
+- Merge pull request #1 from maniac787/fix/win-release
+- fis: release win
+- Revert "chore(release): v1.5.2 [skip ci]"
+- Revert "Update release workflow to create Windows ZIP artifact"
+- Update release workflow to create Windows ZIP artifact
+- fix: solve win release (#7)
+- feat: win deploy (#6)
+- Feature/windows changes (#5)
+- Feature/generate installer (#4)
+- feat: include installer on release (#3)
+- feat: create action to release (#2)
+- licence (#1)
+- update project
 
 ## [1.5.1] - 2026-08-20
 ### Changed
@@ -104,7 +120,8 @@ This fork continues [pasnox/qwbfsmanager](https://github.com/pasnox/qwbfsmanager
 - Direct and indirect drive-to-drive transfer
 - Worker thread for IO operations
 
-[Unreleased]: https://github.com/maniac787/qwbfsmanager/compare/v1.5.1...HEAD
+[Unreleased]: https://github.com/maniac787/qwbfsmanager/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/maniac787/qwbfsmanager/releases/tag/v1.6.0
 [1.5.1]: https://github.com/maniac787/qwbfsmanager/releases/tag/v1.5.1
 [1.5.0]: https://github.com/maniac787/qwbfsmanager/releases/tag/v1.5.0
 [1.4.2]: https://github.com/maniac787/qwbfsmanager/releases/tag/v1.4.2
