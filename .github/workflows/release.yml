@@ -80,52 +80,9 @@ jobs:
           path: ${{ steps.deb.outputs.deb_path }}
           if-no-files-found: error
 
-  build-windows:
-    name: Build Windows zip
-    needs: meta
-    runs-on: windows-latest
-    defaults:
-      run:
-        shell: msys2 {0}
-    outputs:
-      zip_name: ${{ steps.win.outputs.zip_name }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.meta.outputs.tag }}
-          fetch-depth: 0
-
-      - name: Setup MSYS2
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          install: >-
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-make
-            mingw-w64-x86_64-pkgconf
-            mingw-w64-x86_64-qt6-base
-            mingw-w64-x86_64-qt6-tools
-            mingw-w64-x86_64-openssl
-            zip
-
-      - name: Build Windows package
-        id: win
-        run: |
-          chmod +x .github/scripts/build-windows.sh
-          .github/scripts/build-windows.sh "${{ needs.meta.outputs.tag }}"
-
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-zip
-          path: ${{ steps.win.outputs.zip_path }}
-          if-no-files-found: error
-
   release:
     name: Create GitHub Release
-    needs: [meta, build-deb, build-windows]
+    needs: [meta, build-deb]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -138,12 +95,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: linux-deb
-          path: dist
-
-      - name: Download Windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-zip
           path: dist
 
       - name: Create source archive
@@ -167,5 +118,4 @@ jobs:
           files: |
             ${{ env.SRC_ARCHIVE }}
             dist/*.deb
-            dist/*.zip
           fail_on_unmatched_files: true

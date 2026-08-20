@@ -92,8 +92,8 @@ Merging to `main` runs [`.github/workflows/bump-version.yml`](.github/workflows/
   * Moves [CHANGELOG.md](CHANGELOG.md) `Unreleased` notes into the new version
   * Commits `chore(release): vX.Y.Z`, creates tag `vX.Y.Z`, then triggers
     [`.github/workflows/release.yml`](.github/workflows/release.yml) which builds
-    an amd64 `.deb` and a portable Windows x64 `.zip` and publishes the GitHub
-    Release (source archive + `.deb` + `.zip` + generated notes)
+    an amd64 `.deb` and publishes the GitHub Release (source archive + `.deb` +
+    generated notes)
 
 Use Conventional Commits in PR titles / commit messages (`feat:`, `fix:`, `docs:`,
 `feat!:`, etc.). Prefer squash merges so the PR title drives the bump.
@@ -103,7 +103,7 @@ the bump workflow fills the release section from commit subjects.
 
 ## Manual tag
 You can still push a tag yourself; [`.github/workflows/release.yml`](.github/workflows/release.yml)
-builds the Linux `.deb` and Windows `.zip`, then creates/updates the Release. Tags must
+builds the Linux `.deb`, then creates/updates the Release. Tags must
 match `v*` (for example `v1.3.0`). Tags with a hyphen (for example `v1.3.0-rc1`) are
 published as prereleases.
 
