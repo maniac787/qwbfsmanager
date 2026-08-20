@@ -69,9 +69,6 @@
 UIMain::UIMain( QWidget* parent )
     : QMainWindow( parent )
 {
-#if defined( Q_OS_MAC )
-    mMenuBar = new QMenuBar;
-#endif
     mCache = pNetworkAccessManager::instance();
     mUpdateChecker = new pUpdateChecker( this );
     mUpdateChecker->setDownloadsFeedUrl( QUrl( APPLICATION_DOWNLOADS_FEED ) );
@@ -82,10 +79,6 @@ UIMain::UIMain( QWidget* parent )
     setWindowTitle( QString( "%1 v%2" ).arg( APPLICATION_NAME ).arg( APPLICATION_VERSION_STR ) );
     setUnifiedTitleAndToolBarOnMac( true );
     setupUi( this );
-
-#if defined( Q_OS_MAC )
-    mMenuBar->addMenu( "Fake" )->addAction( aProperties );
-#endif
 
     centralVerticalLayout->setMenuBar( qmtbInfos );
     qmtbInfos->layout()->setContentsMargins( 5, 5, 5, 5 );
@@ -101,7 +94,30 @@ UIMain::UIMain( QWidget* parent )
     mActions->addAction( aConvertToISOFiles );
     mActions->addAction( aRenameDiscsInFolder );
 
-    toolBar->insertAction( aAbout, mUpdateChecker->menuAction() );
+    // Menu bar alone on its own row; toolbar buttons below
+    mMenuBar = menuBar();
+#if defined( Q_OS_MAC )
+    mMenuBar->setNativeMenuBar( true );
+#else
+    mMenuBar->setNativeMenuBar( false );
+#endif
+    mMenuBar->clear();
+    mMenuBar->show();
+
+    mFileMenu = mMenuBar->addMenu( tr( "&File" ) );
+    mFileMenu->addAction( aProperties );
+    mFileMenu->addSeparator();
+    mFileMenu->addAction( aQuit );
+
+    mHelpMenu = mMenuBar->addMenu( tr( "&Help" ) );
+    mHelpMenu->addAction( aAbout );
+    mHelpMenu->addAction( aVersion );
+    if ( QAction* updateAction = mUpdateChecker->menuAction() ) {
+        mHelpMenu->addSeparator();
+        mHelpMenu->addAction( updateAction );
+    }
+
+    // Toolbar: only quick action buttons (no menus)
     toolBar->addAction( mActions->menuAction() );
     toolBar->addSeparator();
     toolBar->addAction( dwTools->toggleViewAction() );
@@ -245,6 +261,12 @@ void UIMain::localeChanged()
 {
     retranslateUi( this );
     mActions->setTitle( tr( "Actions" ) );
+    if ( mFileMenu ) {
+        mFileMenu->setTitle( tr( "&File" ) );
+    }
+    if ( mHelpMenu ) {
+        mHelpMenu->setTitle( tr( "&Help" ) );
+    }
 }
 
 void UIMain::loadProperties( bool firstInit )
@@ -483,6 +505,18 @@ void UIMain::on_aAbout_triggered()
 {
     UIAbout* about = new UIAbout( this );
     about->open();
+}
+
+void UIMain::on_aVersion_triggered()
+{
+    QMessageBox::information(
+        this,
+        tr( "Version" ),
+        tr( "<b>%1</b><br/>Version %2<br/><br/>"
+            "Maintainer: Roberto Chasipanta<br/>"
+            "<a href=\"mailto:maniac787@gmail.com\">maniac787@gmail.com</a>" )
+            .arg( APPLICATION_NAME )
+            .arg( APPLICATION_VERSION_STR ) );
 }
 
 void UIMain::on_aProperties_triggered()

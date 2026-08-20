@@ -269,8 +269,6 @@
    </attribute>
    <addaction name="aProperties"/>
    <addaction name="aReloadPartitions"/>
-   <addaction name="aAbout"/>
-   <addaction name="aQuit"/>
    <addaction name="separator"/>
   </widget>
   <widget class="pDockWidget" name="dwCovers">
@@ -396,8 +394,26 @@
    <property name="text">
     <string>About...</string>
    </property>
+   <property name="toolTip">
+    <string>About QWBFS Manager</string>
+   </property>
    <property name="menuRole">
     <enum>QAction::AboutRole</enum>
+   </property>
+  </action>
+  <action name="aVersion">
+   <property name="icon">
+    <iconset resource="../resources/resources.qrc">
+     <normaloff>:/icons/256/about.png</normaloff>:/icons/256/about.png</iconset>
+   </property>
+   <property name="text">
+    <string>Version</string>
+   </property>
+   <property name="toolTip">
+    <string>Show application version</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
   <action name="aQuit">

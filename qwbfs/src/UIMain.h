@@ -64,9 +64,9 @@ public:
     pQueuedMessageToolBar* messageToolBar() const;
 
 protected:
-#if defined( Q_OS_MAC )
     QMenuBar* mMenuBar;
-#endif
+    QMenu* mFileMenu;
+    QMenu* mHelpMenu;
     QMenu* mActions;
     QFileSystemModel* mFoldersModel;
     QFileSystemModel* mFilesModel;
@@ -97,6 +97,7 @@ protected slots:
     void on_aReloadPartitions_triggered();
     void on_aQuit_triggered();
     void on_aAbout_triggered();
+    void on_aVersion_triggered();
     void on_aProperties_triggered();
     void on_aConvertToWBFSFiles_triggered();
     void on_aConvertToISOFiles_triggered();

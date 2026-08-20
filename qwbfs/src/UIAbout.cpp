@@ -37,19 +37,33 @@
 #include "main.h"
 
 #include <QFile>
+#include <QLabel>
 #include <QScrollBar>
+#include <QVBoxLayout>
 
 UIAbout::UIAbout( QWidget* parent )
     : QDialog( parent )
+    , mMaintainer( 0 )
 {
     setAttribute( Qt::WA_DeleteOnClose );
     setupUi( this );
+
+    mMaintainer = new QLabel( this );
+    mMaintainer->setObjectName( QStringLiteral( "lMaintainer" ) );
+    mMaintainer->setAlignment( Qt::AlignCenter );
+    mMaintainer->setOpenExternalLinks( true );
+    mMaintainer->setTextInteractionFlags( Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse );
+    if ( QVBoxLayout* mainLayout = qobject_cast<QVBoxLayout*>( layout() ) ) {
+        mainLayout->insertWidget( mainLayout->indexOf( lDomain ), mMaintainer );
+    }
+
 #if !defined( Q_OS_MAC )
     const QList<QWidget*> widgets = QList<QWidget*>()
         << lName
         << lVersion
         << lDescription
         << lCopyrights
+        << mMaintainer
         << lDomain
         << pteLicense
         << lWarning
@@ -95,4 +109,10 @@ void UIAbout::localeChanged()
     retranslateUi( this );
     lVersion->setText( tr( "Version %1" ).arg( APPLICATION_VERSION_STR ) );
     lDescription->setText( QObject::tr( APPLICATION_DESCRIPTION ).append( "." ) );
+    if ( mMaintainer ) {
+        mMaintainer->setText(
+            tr( "Maintainer: <b>Roberto Chasipanta</b><br/>"
+                "<a href=\"mailto:maniac787@gmail.com\">maniac787@gmail.com</a><br/>"
+                "<a href=\"https://github.com/maniac787/qwbfsmanager\">github.com/maniac787/qwbfsmanager</a>" ) );
+    }
 }

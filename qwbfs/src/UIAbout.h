@@ -38,6 +38,8 @@
 
 #include "ui_UIAbout.h"
 
+class QLabel;
+
 class UIAbout : public QDialog, public Ui::UIAbout
 {
     Q_OBJECT
@@ -49,6 +51,9 @@ public:
 
 protected:
     void localeChanged();
+
+private:
+    QLabel* mMaintainer;
 };
 
 #endif // UIABOUT_H
