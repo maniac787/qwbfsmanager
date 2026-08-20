@@ -50,7 +50,7 @@ jobs:
           git push origin "${TAG}"
 
       # GITHUB_TOKEN tag pushes do not trigger release.yml; dispatch it explicitly
-      # so Linux .deb and Windows .zip are both published.
+      # so the Linux .deb is published.
       - name: Trigger release workflow
         if: ${{ steps.bump.outputs.skip != '1' }}
         env:

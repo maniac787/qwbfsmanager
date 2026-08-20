@@ -14,6 +14,7 @@ This fork continues [pasnox/qwbfsmanager](https://github.com/pasnox/qwbfsmanager
 ### Added
 
 ### Changed
+- GitHub Release workflow publishes only the Linux `.deb` (Windows zip job removed)
 
 ### Fixed
 
