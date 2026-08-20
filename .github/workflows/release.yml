@@ -88,7 +88,7 @@ jobs:
       run:
         shell: msys2 {0}
     outputs:
-      zip_name: ${{ steps.win.outputs.zip_name }}
+      zip_name: ${{ steps.makezip.outputs.zip_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -116,11 +116,41 @@ jobs:
           chmod +x .github/scripts/build-windows.sh
           .github/scripts/build-windows.sh "${{ needs.meta.outputs.tag }}"
 
+      - name: Debug: show dist contents
+        run: |
+          echo "PWD: $(pwd)"
+          ls -la || true
+          ls -la dist || true
+          ls -la dist/* || true
+
+      - name: Create Windows ZIP
+        id: makezip
+        env:
+          TAG: ${{ needs.meta.outputs.tag }}
+        run: |
+          set -e
+          mkdir -p dist
+          # remove leading 'v' from tag to match existing naming like 1.5.1
+          VERSION=${TAG#v}
+          ZIP_NAME="qwbfsmanager-${VERSION}-win64.zip"
+          WIN_DIR="dist/qwbfsmanager-${VERSION}-win64"
+          if [ ! -d "$WIN_DIR" ]; then
+            echo "Directory $WIN_DIR not found, trying to locate any win64 output..."
+            WIN_DIR=$(find dist -maxdepth 1 -type d -name "qwbfsmanager*-win64" | head -n 1)
+            if [ -z "$WIN_DIR" ]; then
+              echo "ERROR: cannot find Windows build output in dist"; ls -la dist || true; exit 1
+            fi
+          fi
+          echo "Creating dist/$ZIP_NAME from $WIN_DIR"
+          zip -r "dist/$ZIP_NAME" "$WIN_DIR"
+          echo "zip_name=dist/$ZIP_NAME" >> "$GITHUB_OUTPUT"
+          ls -la "dist/$ZIP_NAME"
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-zip
-          path: ${{ steps.win.outputs.zip_path }}
+          path: ${{ steps.makezip.outputs.zip_name }}
           if-no-files-found: error
 
   release:
