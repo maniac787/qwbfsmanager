@@ -87,17 +87,40 @@ fi
 # Bundle Qt plugins/DLLs next to the exe
 "$WINDEPLOYQT" --release --compiler-runtime "$DEPLOY_DIR/qwbfsmanager.exe"
 
-# OpenSSL and MinGW runtimes (windeployqt does not always copy them)
-for pattern in \
-  libcrypto-*.dll \
-  libssl-*.dll \
-  libgcc_s_seh-1.dll \
-  libstdc++-6.dll \
-  libwinpthread-1.dll
-do
-  # shellcheck disable=SC2086
-  cp -n /mingw64/bin/${pattern} "$DEPLOY_DIR/" 2>/dev/null || true
-done
+# windeployqt copies Qt modules and a few compiler runtimes, but not the
+# full MinGW transitive set (libb2, ICU, pcre2, freetype, harfbuzz, ...).
+copy_mingw64_runtime_deps() {
+  local dest="$1"
+  local tmp
+  tmp="$(mktemp)"
+  local changed=1
+  while [[ "$changed" -eq 1 ]]; do
+    changed=0
+    find "$dest" -type f \( -iname '*.exe' -o -iname '*.dll' \) > "$tmp"
+    while IFS= read -r bin; do
+      [[ -f "$bin" ]] || continue
+      while IFS= read -r line; do
+        local dep="${line#*=> }"
+        dep="${dep%% (*}"
+        dep="${dep%%$'\r'}"
+        case "$dep" in
+          */mingw64/bin/*.dll) ;;
+          *) continue ;;
+        esac
+        [[ -f "$dep" ]] || continue
+        local base
+        base="$(basename "$dep")"
+        if [[ ! -f "$dest/$base" ]]; then
+          cp "$dep" "$dest/"
+          changed=1
+        fi
+      done < <(ldd "$bin" 2>/dev/null || true)
+    done < "$tmp"
+  done
+  rm -f "$tmp"
+}
+
+copy_mingw64_runtime_deps "$DEPLOY_DIR"
 
 # Prefer Compress-Archive on native Windows CI when zip is missing
 mkdir -p "$DIST_DIR"
