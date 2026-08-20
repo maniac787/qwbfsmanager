@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 where practical.
 
 This fork continues [pasnox/qwbfsmanager](https://github.com/pasnox/qwbfsmanager)
-(archived). Application version in tree: `1.4.2` (`qwbfs/qwbfs.pro`).
+(archived). Application version in tree: `1.5.0` (`qwbfs/qwbfs.pro`).
 
 ## [Unreleased]
 
@@ -16,6 +16,10 @@ This fork continues [pasnox/qwbfsmanager](https://github.com/pasnox/qwbfsmanager
 ### Changed
 
 ### Fixed
+
+## [1.5.0] - 2026-08-20
+### Changed
+- feat: win deploy (#6)
 
 ## [1.4.2] - 2026-08-20
 ### Changed
@@ -96,7 +100,8 @@ This fork continues [pasnox/qwbfsmanager](https://github.com/pasnox/qwbfsmanager
 - Direct and indirect drive-to-drive transfer
 - Worker thread for IO operations
 
-[Unreleased]: https://github.com/maniac787/qwbfsmanager/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/maniac787/qwbfsmanager/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/maniac787/qwbfsmanager/releases/tag/v1.5.0
 [1.4.2]: https://github.com/maniac787/qwbfsmanager/releases/tag/v1.4.2
 [1.4.1]: https://github.com/maniac787/qwbfsmanager/releases/tag/v1.4.1
 [1.4.0]: https://github.com/maniac787/qwbfsmanager/releases/tag/v1.4.0
